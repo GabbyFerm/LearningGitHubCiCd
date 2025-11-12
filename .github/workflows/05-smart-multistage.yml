@@ -65,11 +65,17 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Simulate deploy to dev
+      - name: Publish (build publish output)
+        run: dotnet publish ./API/API.csproj -c Release -o ./out
+
+      - name: Simulate deploy to dev using published files
         run: |
           echo "Deploying ${{ vars.SERVICE_NAME }} to dev environment"
-          # In a real pipeline replace the following lines with your deploy commands (scp, az cli, kubectl, etc.)
-          echo "Dev deploy simulated. (No secrets used for dev in this example.)"
+          echo "Listing published files:"
+          ls -la ./out || true
+          # Simulate transfer / deploy steps (scp/rsync/az cli/kubectl)
+          echo "Simulating file transfer to dev host..."
+          echo "✅ Deployment completed successfully"
 
   deploy-prod:
     name: Deploy to prod
@@ -88,6 +94,9 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Publish (build publish output)
+        run: dotnet publish ./API/API.csproj -c Release -o ./out
+
       - name: Demonstrate secret masking and simulate production deploy
         env:
           PROD_API_KEY: ${{ secrets.PROD_API_KEY }}   # secret stored in prod environment
@@ -97,5 +106,7 @@ jobs:
           echo "Deploying ${{ vars.SERVICE_NAME }} to production environment"
           # The value below will be masked in logs (you will see '***' not the actual secret)
           echo "Using PROD_API_KEY: ${PROD_API_KEY}"
-          # Replace with real deploy steps for your infra (az cli, aws cli, kubectl, etc.)
-          echo "Production deploy simulated. Job will require environment approval if configured in repo settings."
+          echo "Listing published files:"
+          ls -la ./out || true
+          echo "Simulating file transfer to production host..."
+          echo "✅ Deployment completed successfully"
