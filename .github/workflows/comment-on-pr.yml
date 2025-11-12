@@ -1,4 +1,4 @@
-# Greet the PR author when a PR is opened or reopened 
+# Greet the PR author when a PR is opened or reopened (create-or-update comment)
 name: Comment on Pull Request
 
 on:
@@ -19,4 +19,5 @@ jobs:
         uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          message: "Hi @${{ github.event.pull_request.user.login }}, thank you for your PR — are you running dotnet test locally before review?"         
+          body: |
+            Hi @${{ github.event.pull_request.user.login }}, thank you for your PR — are you running dotnet test locally before review?         
