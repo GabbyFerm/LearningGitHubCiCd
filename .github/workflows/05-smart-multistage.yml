@@ -1,5 +1,4 @@
 # Smart multi-stage CI/CD for minimal .NET API
-# Runs on every push, has build, test, deploy-dev and deploy-prod jobs.
 name: Smart Multi-Stage CI/CD
 
 on:
@@ -101,7 +100,6 @@ jobs:
         env:
           PROD_API_KEY: ${{ secrets.PROD_API_KEY }}   # secret stored in prod environment
         run: |
-          # Masking explicitly (secrets are automatically masked by Actions, this reinforces it)
           echo "::add-mask::${PROD_API_KEY}"
           echo "Deploying ${{ vars.SERVICE_NAME }} to production environment"
           # The value below will be masked in logs (you will see '***' not the actual secret)
@@ -110,3 +108,62 @@ jobs:
           ls -la ./out || true
           echo "Simulating file transfer to production host..."
           echo "✅ Deployment completed successfully"
+          
+  notify-discord:
+    name: Notify Discord (build/test result)
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Mask Discord webhook
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      run: |
+        # ensure webhook secret is masked if printed accidentally
+        echo "::add-mask::${DISCORD_WEBHOOK}"
+
+    - name: Success message
+      if: ${{ success() }}
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      run: |
+        cat > /tmp/discord_payload.json <<'JSON'
+        {
+          "username": "PR Bot",
+          "avatar_url": "https://www.ditverzinjeniet.nl/wp-content/uploads/2019/01/products-borat-mankini-sfeer.jpg",
+          "content": "✅ Build succeeded!",
+          "embeds": [
+            {
+              "title": "Great success! 🎉",
+              "image": {
+                "url": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcmpwYWJrb242bTczYjB6MnJqeWVhamJ6bXJleW56OHdjOGx2aTh1bSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Od0QRnzwRBYmDU3eEO/giphy.gif"
+              },
+              "color": 3066993
+            }
+          ]
+        }
+        JSON
+                curl -s -H "Content-Type: application/json" -d @/tmp/discord_payload.json "${DISCORD_WEBHOOK}"
+
+    - name: Failure message
+      if: ${{ failure() }}
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      run: |
+        cat > /tmp/discord_payload.json <<'JSON'
+        {
+          "username": "PR Bot",
+          "avatar_url": "https://www.ditverzinjeniet.nl/wp-content/uploads/2019/01/products-borat-mankini-sfeer.jpg",
+          "content": "❌ Build failed!",
+          "embeds": [
+            {
+              "title": "NOT great success... 💀",
+              "image": {
+                "url": "https://media.giphy.com/media/1BXa2alBjrCXC/giphy.gif"
+              },
+              "color": 15158332
+            }
+          ]
+        }
+        JSON
+                curl -s -H "Content-Type: application/json" -d @/tmp/discord_payload.json "${DISCORD_WEBHOOK}"
