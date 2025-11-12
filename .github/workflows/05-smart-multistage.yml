@@ -31,7 +31,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Show repo variable (SERVICE_NAME)
-        run: echo "Built service: ${{ vars.SERVICE_NAME }}"
+        run: echo "Built service:${{ vars.SERVICE_NAME }}"
 
   test:
     name: Test (NUnit)
