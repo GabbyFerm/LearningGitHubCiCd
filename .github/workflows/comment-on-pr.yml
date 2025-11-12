@@ -1,5 +1,4 @@
-# Greet the PR author when a PR is opened or reopened (create-or-update comment)
-name: Comment on Pull Request
+name: PR Comment Debug
 
 on:
   pull_request:
@@ -9,15 +8,22 @@ permissions:
   issues: write
 
 jobs:
-  post-comment:
+  debug-comment:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Comment PR (create or update)
+      - name: Show event payload (first 120 lines)
+        run: |
+          echo "GITHUB_EVENT_NAME=$GITHUB_EVENT_NAME"
+          echo "Event file: $GITHUB_EVENT_PATH"
+          sed -n '1,120p' "$GITHUB_EVENT_PATH" || true
+
+      - name: Try to post comment (peter-evans)
         uses: peter-evans/create-or-update-comment@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            Hi @${{ github.event.pull_request.user.login }}, thank you for your PR — are you running dotnet test locally before review?         
+            Debug: Hello @${{ github.event.pull_request.user.login }}, this is a test comment from the debug workflow.       
