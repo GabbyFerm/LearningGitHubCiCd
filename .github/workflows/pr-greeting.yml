@@ -1,0 +1,23 @@
+# Greet the PR author when a PR is opened or reopened (create-or-update comment)
+name: Comment on Pull Request
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  post-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Comment PR (create or update)
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Hi @${{ github.event.pull_request.user.login }}, thank you for your PR - are you running dotnet test locally before review?
