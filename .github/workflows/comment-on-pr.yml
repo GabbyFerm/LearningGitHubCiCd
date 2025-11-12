@@ -1,9 +1,12 @@
-# Greet the PR author when a PR is opened or reopened
+# Greet the PR author when a PR is opened or reopened 
 name: Comment on Pull Request
 
 on:
   pull_request:
     types: [opened, reopened]
+
+permissions:
+  issues: write
 
 jobs:
   post-comment:
@@ -12,7 +15,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Comment PR
-        uses: thollander/actions-comment-pull-request@v1
+      - name: Comment PR (create or update)
+        uses: peter-evans/create-or-update-comment@v4
         with:
-          message: "Hej @${{ github.event.pull_request.user.login }}, tack för din PR — kör du dotnet test lokalt innan review?"         
+          issue-number: ${{ github.event.pull_request.number }}
+          message: "Hi @${{ github.event.pull_request.user.login }}, thank you for your PR — are you running dotnet test locally before review?"         
